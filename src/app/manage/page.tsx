@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { GenerationConditionsView } from "@/components/generation-conditions-view";
 import type { BentoMenu } from "@/types/bento";
-import { Filter, Heart, Plus, Trash2 } from "lucide-react";
+import { Filter, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -20,7 +20,6 @@ export default function ManagePage() {
   const [savedMenus, setSavedMenus] = useState<BentoMenu[]>([]);
   const [filteredMenus, setFilteredMenus] = useState<BentoMenu[]>([]);
   const [genreFilter, setGenreFilter] = useState<string>("全て");
-  const [favoriteOnly, setFavoriteOnly] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -38,12 +37,9 @@ export default function ManagePage() {
       filtered = filtered.filter((menu) => menu.genre === genreFilter);
     }
 
-    if (favoriteOnly) {
-      filtered = filtered.filter((menu) => menu.isFavorite);
-    }
 
     setFilteredMenus(filtered);
-  }, [savedMenus, genreFilter, favoriteOnly]);
+  }, [savedMenus, genreFilter]);
 
   const handleDeleteMenu = (menuId: string) => {
     const updatedMenus = savedMenus.filter((menu) => menu.id !== menuId);
@@ -51,35 +47,6 @@ export default function ManagePage() {
     localStorage.setItem("bentoMenus", JSON.stringify(updatedMenus));
   };
 
-  const handleToggleFavorite = (menuId: string) => {
-    const updatedMenus = savedMenus.map((menu) => {
-      if (menu.id === menuId) {
-        const updatedMenu = { ...menu, isFavorite: !menu.isFavorite };
-        
-        // お気に入りの状態に応じてfavoriteBentoMenusも更新
-        const favorites = JSON.parse(localStorage.getItem("favoriteBentoMenus") || "[]");
-        
-        if (updatedMenu.isFavorite) {
-          // お気に入りに追加
-          const isAlreadyFavorite = favorites.find((fav: BentoMenu) => fav.id === menuId);
-          if (!isAlreadyFavorite) {
-            const newFavorites = [...favorites, updatedMenu];
-            localStorage.setItem("favoriteBentoMenus", JSON.stringify(newFavorites));
-          }
-        } else {
-          // お気に入りから削除
-          const newFavorites = favorites.filter((fav: BentoMenu) => fav.id !== menuId);
-          localStorage.setItem("favoriteBentoMenus", JSON.stringify(newFavorites));
-        }
-        
-        return updatedMenu;
-      }
-      return menu;
-    });
-    
-    setSavedMenus(updatedMenus);
-    localStorage.setItem("bentoMenus", JSON.stringify(updatedMenus));
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 p-4">
@@ -91,13 +58,6 @@ export default function ManagePage() {
             <p className="text-slate-600">保存したお弁当メニューを管理・活用できます</p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/favorites")}
-              className="flex items-center gap-2"
-            >
-              ⭐ お気に入り
-            </Button>
             <Button onClick={() => router.push("/")} className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               新しいメニューを生成
@@ -116,9 +76,9 @@ export default function ManagePage() {
           <Card className="shadow-md border-0 bg-white/90 backdrop-blur">
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-rose-600">
-                {savedMenus.filter((m) => m.isFavorite).length}
+                {new Set(savedMenus.map(m => m.genre)).size}
               </div>
-              <div className="text-sm text-slate-600">お気に入り</div>
+              <div className="text-sm text-slate-600">ジャンル数</div>
             </CardContent>
           </Card>
           <Card className="shadow-md border-0 bg-white/90 backdrop-blur">
@@ -170,15 +130,6 @@ export default function ManagePage() {
                 </SelectContent>
               </Select>
 
-              <Button
-                variant={favoriteOnly ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFavoriteOnly(!favoriteOnly)}
-                className="flex items-center gap-2"
-              >
-                <Heart className={`w-4 h-4 ${favoriteOnly ? "fill-current" : ""}`} />
-                お気に入りのみ
-              </Button>
 
               <div className="text-sm text-gray-500">{filteredMenus.length}件表示</div>
             </div>
@@ -218,19 +169,10 @@ export default function ManagePage() {
                       <CardTitle className="flex items-center gap-2">
                         {menu.name}
                         <Badge variant="outline">{menu.genre}</Badge>
-                        {menu.isFavorite && <Heart className="w-4 h-4 text-red-500 fill-current" />}
                       </CardTitle>
                       <CardDescription className="mt-1">{menu.description}</CardDescription>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleFavorite(menu.id)}
-                        className={menu.isFavorite ? "text-red-500" : "text-gray-400"}
-                      >
-                        <Heart className={`w-4 h-4 ${menu.isFavorite ? "fill-current" : ""}`} />
-                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"

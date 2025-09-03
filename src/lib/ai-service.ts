@@ -71,14 +71,15 @@ export class BentoAIService {
       const parsed = GenerationResponseSchema.parse(JSON.parse(content));
 
       // BentoMenu形式に変換
+      const conditionsWithModel = { ...conditions, model };
       const menus: BentoMenu[] = parsed.menus.map((menu: z.infer<typeof BentoMenuSchema>) => ({
         id: crypto.randomUUID(),
         ...menu,
         genre: conditions.genre === "指定なし" ? "和食" : conditions.genre,
         volume: conditions.volume,
         createdAt: new Date(),
-        isFavorite: false,
-        generationConditions: conditions,
+        isSelected: false,
+        generationConditions: conditionsWithModel,
       }));
 
       return menus;

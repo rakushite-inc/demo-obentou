@@ -16,7 +16,7 @@ export interface BentoMenu {
   genre: "和食" | "洋食" | "中華";
   volume: "小" | "中" | "大";
   createdAt: Date;
-  isFavorite?: boolean;
+  isSelected?: boolean;
   generationConditions?: GenerationConditions;
 }
 
@@ -38,6 +38,7 @@ export interface GenerationConditions {
   cookingMethod: "指定なし" | "揚げ物なし" | "オーブンなし" | "簡単調理";
   seasonalFocus: "旬の食材" | "通常" | "冷凍食材中心";
   additionalRequests?: string;
+  model?: "gpt-4o" | "o3";
 }
 
 export interface GenerationResult {

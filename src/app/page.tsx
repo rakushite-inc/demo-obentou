@@ -104,15 +104,10 @@ export default function Home() {
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [favoritesCount, setFavoritesCount] = useState(0);
   const [savedMenusCount, setSavedMenusCount] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
-    // お気に入り数を取得
-    const favorites = JSON.parse(localStorage.getItem("favoriteBentoMenus") || "[]");
-    setFavoritesCount(favorites.length);
-
     // 保存メニュー数を取得
     const savedMenus = JSON.parse(localStorage.getItem("bentoMenus") || "[]");
     setSavedMenusCount(savedMenus.length);
@@ -145,9 +140,9 @@ export default function Home() {
 
       const data = await response.json();
 
-      // 生成結果をURLパラメータで渡すか、sessionStorageを使用
-      sessionStorage.setItem("generatedMenus", JSON.stringify(data.menus));
-      sessionStorage.setItem("generationConditions", JSON.stringify(conditions));
+      // 生成結果をlocalStorageに保存
+      localStorage.setItem("generatedMenus", JSON.stringify(data.menus));
+      localStorage.setItem("generationConditions", JSON.stringify(conditions));
 
       // 結果ページに遷移
       window.location.href = "/results";
@@ -175,31 +170,18 @@ export default function Home() {
             Powered by {selectedModel === "gpt-4o" ? "GPT-4o" : "o3"}
           </div>
 
-          {/* お気に入り・管理ページへのリンク */}
-          {(favoritesCount > 0 || savedMenusCount > 0) && (
-            <div className="flex justify-center gap-3 flex-wrap">
-              {favoritesCount > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push("/favorites")}
-                  className="flex items-center gap-2 bg-white/80 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  ⭐ お気に入り ({favoritesCount})
-                </Button>
-              )}
-              {savedMenusCount > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push("/manage")}
-                  className="flex items-center gap-2 bg-white/80 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  📋 管理画面 ({savedMenusCount})
-                </Button>
-              )}
-            </div>
-          )}
+          {/* 管理ページへのリンク */}
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/manage")}
+              className="flex items-center gap-2 bg-white/80 shadow-sm hover:shadow-md transition-shadow"
+            >
+              📋 メニュー管理
+              {savedMenusCount > 0 && <span className="ml-1">({savedMenusCount})</span>}
+            </Button>
+          </div>
         </div>
 
         {/* モデル選択 */}

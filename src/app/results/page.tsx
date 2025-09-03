@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, RotateCcw, Save, ArrowLeft } from "lucide-react";
+import { Save, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { BentoMenu, GenerationConditions } from "@/types/bento";
 
@@ -28,7 +28,7 @@ const SAMPLE_MENUS: BentoMenu[] = [
     genre: "和食",
     volume: "中",
     createdAt: new Date(),
-    isFavorite: false,
+    isSelected: false,
   },
   {
     id: "2",
@@ -48,7 +48,7 @@ const SAMPLE_MENUS: BentoMenu[] = [
     genre: "洋食",
     volume: "中",
     createdAt: new Date(),
-    isFavorite: false,
+    isSelected: false,
   },
   {
     id: "3",
@@ -68,20 +68,19 @@ const SAMPLE_MENUS: BentoMenu[] = [
     genre: "和食",
     volume: "中",
     createdAt: new Date(),
-    isFavorite: false,
+    isSelected: false,
   },
 ];
 
 export default function ResultsPage() {
   const [menus, setMenus] = useState<BentoMenu[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [conditions, setConditions] = useState<GenerationConditions | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // sessionStorageからデータを読み込み
-    const savedMenus = sessionStorage.getItem("generatedMenus");
-    const savedConditions = sessionStorage.getItem("generationConditions");
+    // localStorageからデータを読み込み
+    const savedMenus = localStorage.getItem("generatedMenus");
+    const savedConditions = localStorage.getItem("generationConditions");
     
     if (savedMenus) {
       setMenus(JSON.parse(savedMenus));
@@ -95,76 +94,29 @@ export default function ResultsPage() {
     }
   }, []);
 
-  const handleFavoriteToggle = (menuId: string) => {
+  const handleToggleSave = (menuId: string) => {
     setMenus(prev =>
-      prev.map(menu => {
-        if (menu.id === menuId) {
-          const updatedMenu = { ...menu, isFavorite: !menu.isFavorite };
-          
-          // お気に入りの状態に応じてlocalStorageを更新
-          const favorites = JSON.parse(localStorage.getItem("favoriteBentoMenus") || "[]");
-          
-          if (updatedMenu.isFavorite) {
-            // お気に入りに追加
-            const isAlreadyFavorite = favorites.find((fav: BentoMenu) => fav.id === menuId);
-            if (!isAlreadyFavorite) {
-              const newFavorites = [...favorites, updatedMenu];
-              localStorage.setItem("favoriteBentoMenus", JSON.stringify(newFavorites));
-            }
-          } else {
-            // お気に入りから削除
-            const newFavorites = favorites.filter((fav: BentoMenu) => fav.id !== menuId);
-            localStorage.setItem("favoriteBentoMenus", JSON.stringify(newFavorites));
-          }
-          
-          return updatedMenu;
-        }
-        return menu;
-      })
+      prev.map(menu => 
+        menu.id === menuId ? { ...menu, isSelected: !menu.isSelected } : menu
+      )
     );
   };
 
-  const handleRegenerate = async () => {
-    if (!conditions) {
-      alert("生成条件が見つかりません。新しくメニューを生成してください。");
-      router.push("/");
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch("/api/generate-menu", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(conditions),
-      });
-
-      if (!response.ok) {
-        throw new Error("メニュー生成に失敗しました");
-      }
-
-      const data = await response.json();
-      setMenus(data.menus.map((menu: BentoMenu) => ({ ...menu, isFavorite: false })));
-      
-      // sessionStorageも更新
-      sessionStorage.setItem("generatedMenus", JSON.stringify(data.menus));
-    } catch (error) {
-      console.error("Regeneration failed:", error);
-      alert("再生成に失敗しました。もう一度お試しください。");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSaveAndManage = () => {
     // LocalStorageに保存
     const savedMenus = JSON.parse(localStorage.getItem("bentoMenus") || "[]");
-    const updatedMenus = [...savedMenus, ...menus.filter(m => m.isFavorite)];
+    const selectedMenus = menus.filter(m => m.isSelected);
+    
+    // 重複チェック
+    const newMenus = selectedMenus.filter(menu => 
+      !savedMenus.find((saved: BentoMenu) => saved.id === menu.id)
+    );
+    
+    const updatedMenus = [...savedMenus, ...newMenus];
     localStorage.setItem("bentoMenus", JSON.stringify(updatedMenus));
     
+    alert(`${selectedMenus.length}件のメニューを保存しました`);
     router.push("/manage");
   };
 
@@ -194,28 +146,19 @@ export default function ResultsPage() {
         {/* アクションボタン */}
         <div className="flex gap-4">
           <Button
-            onClick={handleRegenerate}
-            disabled={isLoading}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            {isLoading ? "再生成中..." : "再生成"}
-          </Button>
-          <Button
-            onClick={() => router.push("/favorites")}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            ⭐ お気に入り一覧
-          </Button>
-          <Button
             onClick={handleSaveAndManage}
             className="flex items-center gap-2"
-            disabled={!menus.some(m => m.isFavorite)}
+            disabled={!menus.some(m => m.isSelected)}
           >
             <Save className="w-4 h-4" />
-            選択したメニューを保存
+            選択したメニューを保存 ({menus.filter(m => m.isSelected).length}件)
+          </Button>
+          <Button
+            onClick={() => router.push("/manage")}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            📋 管理画面
           </Button>
         </div>
 
@@ -261,6 +204,11 @@ export default function ResultsPage() {
                     <span className="font-medium text-slate-700">アレルゲン除外:</span> {conditions.allergens.join("、")}
                   </div>
                 )}
+                {conditions.model && (
+                  <div>
+                    <span className="font-medium text-slate-700">使用AI:</span> {conditions.model === "gpt-4o" ? "GPT-4o" : "o3"}
+                  </div>
+                )}
                 {conditions.additionalRequests && (
                   <div className="md:col-span-2 lg:col-span-3">
                     <span className="font-medium text-slate-700">その他リクエスト:</span> {conditions.additionalRequests}
@@ -273,8 +221,8 @@ export default function ResultsPage() {
 
         {/* 生成されたメニュー一覧 */}
         <div className="grid gap-6">
-          {menus.map((menu, index) => (
-            <Card key={menu.id} className={`transition-all shadow-md border-0 bg-white/90 backdrop-blur ${menu.isFavorite ? "ring-2 ring-emerald-500 shadow-lg" : ""}`}>
+          {menus.map((menu) => (
+            <Card key={menu.id} className={`transition-all shadow-md border-0 bg-white/90 backdrop-blur ${menu.isSelected ? "ring-2 ring-emerald-500 shadow-lg" : ""}`}>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
@@ -287,12 +235,13 @@ export default function ResultsPage() {
                     </CardDescription>
                   </div>
                   <Button
-                    variant="ghost"
+                    variant={menu.isSelected ? "default" : "outline"}
                     size="sm"
-                    onClick={() => handleFavoriteToggle(menu.id)}
-                    className={`${menu.isFavorite ? "text-red-500" : "text-gray-400"}`}
+                    onClick={() => handleToggleSave(menu.id)}
+                    className="flex items-center gap-1"
                   >
-                    <Heart className={`w-5 h-5 ${menu.isFavorite ? "fill-current" : ""}`} />
+                    <Save className="w-4 h-4" />
+                    {menu.isSelected ? "選択中" : "選択"}
                   </Button>
                 </div>
               </CardHeader>
@@ -343,7 +292,7 @@ export default function ResultsPage() {
 
         {/* フッター */}
         <div className="text-center text-sm text-gray-500">
-          💡 気に入ったメニューにハートマークを付けて保存できます
+          💡 保存したいメニューを選択してから「保存」ボタンを押してください
         </div>
       </div>
     </div>

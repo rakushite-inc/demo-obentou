@@ -1,5 +1,6 @@
 "use client";
 
+import { ModelSelector, type AIModel } from "@/components/ModelSelector";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,6 +88,7 @@ const REGIONS = [
 ];
 
 export default function Home() {
+  const [selectedModel, setSelectedModel] = useState<AIModel>("gpt-4o");
   const [conditions, setConditions] = useState<GenerationConditions>({
     budget: { min: 300, max: 600 },
     calories: { min: 500, max: 800 },
@@ -134,7 +136,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(conditions),
+        body: JSON.stringify({ conditions, model: selectedModel }),
       });
 
       if (!response.ok) {
@@ -167,10 +169,10 @@ export default function Home() {
             お客様のニーズに合わせたお弁当メニューをAIが自動生成します
           </p>
 
-          {/* GPT-5使用表示 */}
+          {/* AI使用表示 */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-full shadow-lg">
             <span className="text-xs">⚡</span>
-            Powered by GPT-5
+            Powered by {selectedModel === "gpt-4o" ? "GPT-4o" : "o3"}
           </div>
 
           {/* お気に入り・管理ページへのリンク */}
@@ -199,6 +201,9 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* モデル選択 */}
+        <ModelSelector selectedModel={selectedModel} onModelChange={setSelectedModel} />
 
         {/* メニュー生成フォーム */}
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">

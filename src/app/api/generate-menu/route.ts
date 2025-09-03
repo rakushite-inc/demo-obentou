@@ -4,7 +4,8 @@ import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const conditions: GenerationConditions = await request.json();
+    const body = await request.json();
+    const { conditions, model = "gpt-4o" } = body;
 
     // APIキーのチェック
     if (!process.env.OPENAI_API_KEY) {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     const aiService = new BentoAIService();
-    const menus = await aiService.generateMenus(conditions);
+    const menus = await aiService.generateMenus(conditions, model);
 
     return NextResponse.json({ menus });
   } catch (error) {

@@ -32,15 +32,15 @@ export class BentoAIService {
     });
   }
 
-  async generateMenus(conditions: GenerationConditions): Promise<BentoMenu[]> {
+  async generateMenus(conditions: GenerationConditions, model: "gpt-4o" | "o3" = "gpt-4o"): Promise<BentoMenu[]> {
     try {
       const prompt = this.buildPrompt(conditions);
 
-      const completion = await this.openai.chat.completions.create({
-        model: "gpt-5",
+      const baseOptions = {
+        model,
         messages: [
           {
-            role: "system",
+            role: "system" as const,
             content: `あなたはお弁当業界の専門家です。お弁当製造・販売事業者向けに、実用的で現実的なお弁当メニューを提案してください。
             
 指示事項:
@@ -51,11 +51,17 @@ export class BentoAIService {
 - 季節感を取り入れる
 - 3つのメニューを提案する`,
           },
-          { role: "user", content: prompt },
+          { role: "user" as const, content: prompt },
         ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-      });
+        response_format: { type: "json_object" as const },
+      };
+
+      // GPT-4oの場合のみtemperatureを設定（o3はサポートしていない）
+      const requestOptions = model === "gpt-4o" 
+        ? { ...baseOptions, temperature: 0.7 }
+        : baseOptions;
+
+      const completion = await this.openai.chat.completions.create(requestOptions);
 
       const content = completion.choices[0].message.content;
       if (!content) {

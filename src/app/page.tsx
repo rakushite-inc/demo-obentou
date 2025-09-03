@@ -1,31 +1,89 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useRouter } from "next/navigation";
 import type { GenerationConditions } from "@/types/bento";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const ALLERGENS = ["卵", "乳", "小麦", "そば", "落花生", "えび", "かに"];
 const REGIONS = [
   // 日本
-  "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
-  "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
-  "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県",
-  "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県",
-  "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県",
-  "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県",
-  "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県",
+  "北海道",
+  "青森県",
+  "岩手県",
+  "宮城県",
+  "秋田県",
+  "山形県",
+  "福島県",
+  "茨城県",
+  "栃木県",
+  "群馬県",
+  "埼玉県",
+  "千葉県",
+  "東京都",
+  "神奈川県",
+  "新潟県",
+  "富山県",
+  "石川県",
+  "福井県",
+  "山梨県",
+  "長野県",
+  "岐阜県",
+  "静岡県",
+  "愛知県",
+  "三重県",
+  "滋賀県",
+  "京都府",
+  "大阪府",
+  "兵庫県",
+  "奈良県",
+  "和歌山県",
+  "鳥取県",
+  "島根県",
+  "岡山県",
+  "広島県",
+  "山口県",
+  "徳島県",
+  "香川県",
+  "愛媛県",
+  "高知県",
+  "福岡県",
+  "佐賀県",
+  "長崎県",
+  "熊本県",
+  "大分県",
+  "宮崎県",
+  "鹿児島県",
+  "沖縄県",
   // 海外
-  "🌏 韓国", "🌏 中国", "🌏 台湾", "🌏 タイ", "🌏 ベトナム", "🌏 インド",
-  "🌍 イタリア", "🌍 フランス", "🌍 ドイツ", "🌍 スペイン", "🌍 イギリス",
-  "🌎 アメリカ", "🌎 メキシコ", "🌎 ブラジル", "🌎 ペルー",
-  "🦘 オーストラリア"
+  "🌏 韓国",
+  "🌏 中国",
+  "🌏 台湾",
+  "🌏 タイ",
+  "🌏 ベトナム",
+  "🌏 インド",
+  "🌍 イタリア",
+  "🌍 フランス",
+  "🌍 ドイツ",
+  "🌍 スペイン",
+  "🌍 イギリス",
+  "🌎 アメリカ",
+  "🌎 メキシコ",
+  "🌎 ブラジル",
+  "🌎 ペルー",
+  "🦘 オーストラリア",
 ];
 
 export default function Home() {
@@ -52,24 +110,24 @@ export default function Home() {
     // お気に入り数を取得
     const favorites = JSON.parse(localStorage.getItem("favoriteBentoMenus") || "[]");
     setFavoritesCount(favorites.length);
-    
+
     // 保存メニュー数を取得
     const savedMenus = JSON.parse(localStorage.getItem("bentoMenus") || "[]");
     setSavedMenusCount(savedMenus.length);
   }, []);
 
   const handleAllergenToggle = (allergen: string) => {
-    setConditions(prev => ({
+    setConditions((prev) => ({
       ...prev,
       allergens: prev.allergens.includes(allergen)
-        ? prev.allergens.filter(a => a !== allergen)
-        : [...prev.allergens, allergen]
+        ? prev.allergens.filter((a) => a !== allergen)
+        : [...prev.allergens, allergen],
     }));
   };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
-    
+
     try {
       const response = await fetch("/api/generate-menu", {
         method: "POST",
@@ -84,11 +142,11 @@ export default function Home() {
       }
 
       const data = await response.json();
-      
+
       // 生成結果をURLパラメータで渡すか、sessionStorageを使用
       sessionStorage.setItem("generatedMenus", JSON.stringify(data.menus));
       sessionStorage.setItem("generationConditions", JSON.stringify(conditions));
-      
+
       // 結果ページに遷移
       window.location.href = "/results";
     } catch (error) {
@@ -104,13 +162,17 @@ export default function Home() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* ヘッダー */}
         <div className="text-center space-y-3">
-          <h1 className="text-3xl font-bold text-slate-800">
-            🍱 AIお弁当メニュー生成システム
-          </h1>
+          <h1 className="text-3xl font-bold text-slate-800">🍱 AIお弁当メニュー生成システム</h1>
           <p className="text-slate-600">
             お客様のニーズに合わせたお弁当メニューをAIが自動生成します
           </p>
-          
+
+          {/* GPT-5使用表示 */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-full shadow-lg">
+            <span className="text-xs">⚡</span>
+            Powered by GPT-5
+          </div>
+
           {/* お気に入り・管理ページへのリンク */}
           {(favoritesCount > 0 || savedMenusCount > 0) && (
             <div className="flex justify-center gap-3 flex-wrap">
@@ -142,9 +204,7 @@ export default function Home() {
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
           <CardHeader>
             <CardTitle>メニュー生成条件</CardTitle>
-            <CardDescription>
-              お弁当の条件を設定してください
-            </CardDescription>
+            <CardDescription>お弁当の条件を設定してください</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* 予算設定 */}
@@ -154,10 +214,12 @@ export default function Home() {
                 <Input
                   type="number"
                   value={conditions.budget.min}
-                  onChange={(e) => setConditions(prev => ({
-                    ...prev,
-                    budget: { ...prev.budget, min: Number(e.target.value) }
-                  }))}
+                  onChange={(e) =>
+                    setConditions((prev) => ({
+                      ...prev,
+                      budget: { ...prev.budget, min: Number(e.target.value) },
+                    }))
+                  }
                   className="w-24"
                   min={300}
                   max={800}
@@ -166,10 +228,12 @@ export default function Home() {
                 <Input
                   type="number"
                   value={conditions.budget.max}
-                  onChange={(e) => setConditions(prev => ({
-                    ...prev,
-                    budget: { ...prev.budget, max: Number(e.target.value) }
-                  }))}
+                  onChange={(e) =>
+                    setConditions((prev) => ({
+                      ...prev,
+                      budget: { ...prev.budget, max: Number(e.target.value) },
+                    }))
+                  }
                   className="w-24"
                   min={300}
                   max={800}
@@ -185,10 +249,12 @@ export default function Home() {
                 <Input
                   type="number"
                   value={conditions.calories.min}
-                  onChange={(e) => setConditions(prev => ({
-                    ...prev,
-                    calories: { ...prev.calories, min: Number(e.target.value) }
-                  }))}
+                  onChange={(e) =>
+                    setConditions((prev) => ({
+                      ...prev,
+                      calories: { ...prev.calories, min: Number(e.target.value) },
+                    }))
+                  }
                   className="w-24"
                   min={400}
                   max={1000}
@@ -197,10 +263,12 @@ export default function Home() {
                 <Input
                   type="number"
                   value={conditions.calories.max}
-                  onChange={(e) => setConditions(prev => ({
-                    ...prev,
-                    calories: { ...prev.calories, max: Number(e.target.value) }
-                  }))}
+                  onChange={(e) =>
+                    setConditions((prev) => ({
+                      ...prev,
+                      calories: { ...prev.calories, max: Number(e.target.value) },
+                    }))
+                  }
                   className="w-24"
                   min={400}
                   max={1000}
@@ -214,7 +282,9 @@ export default function Home() {
               <Label>ジャンル</Label>
               <Select
                 value={conditions.genre}
-                onValueChange={(value: GenerationConditions["genre"]) => setConditions(prev => ({ ...prev, genre: value }))}
+                onValueChange={(value: GenerationConditions["genre"]) =>
+                  setConditions((prev) => ({ ...prev, genre: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -233,7 +303,9 @@ export default function Home() {
               <Label>ボリューム</Label>
               <Select
                 value={conditions.volume}
-                onValueChange={(value: GenerationConditions["volume"]) => setConditions(prev => ({ ...prev, volume: value }))}
+                onValueChange={(value: GenerationConditions["volume"]) =>
+                  setConditions((prev) => ({ ...prev, volume: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -251,7 +323,7 @@ export default function Home() {
               <Label>地域特性</Label>
               <Select
                 value={conditions.region}
-                onValueChange={(value) => setConditions(prev => ({ ...prev, region: value }))}
+                onValueChange={(value) => setConditions((prev) => ({ ...prev, region: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -282,9 +354,7 @@ export default function Home() {
                 ))}
               </div>
               {conditions.allergens.length > 0 && (
-                <p className="text-sm text-gray-600">
-                  選択中: {conditions.allergens.join(", ")}
-                </p>
+                <p className="text-sm text-gray-600">選択中: {conditions.allergens.join(", ")}</p>
               )}
             </div>
 
@@ -293,7 +363,9 @@ export default function Home() {
               <Label>ターゲット顧客</Label>
               <Select
                 value={conditions.targetCustomer}
-                onValueChange={(value: GenerationConditions["targetCustomer"]) => setConditions(prev => ({ ...prev, targetCustomer: value }))}
+                onValueChange={(value: GenerationConditions["targetCustomer"]) =>
+                  setConditions((prev) => ({ ...prev, targetCustomer: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -314,7 +386,9 @@ export default function Home() {
               <Label>健康・栄養志向</Label>
               <Select
                 value={conditions.healthFocus}
-                onValueChange={(value: GenerationConditions["healthFocus"]) => setConditions(prev => ({ ...prev, healthFocus: value }))}
+                onValueChange={(value: GenerationConditions["healthFocus"]) =>
+                  setConditions((prev) => ({ ...prev, healthFocus: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -334,7 +408,9 @@ export default function Home() {
               <Label>調理制約</Label>
               <Select
                 value={conditions.cookingMethod}
-                onValueChange={(value: GenerationConditions["cookingMethod"]) => setConditions(prev => ({ ...prev, cookingMethod: value }))}
+                onValueChange={(value: GenerationConditions["cookingMethod"]) =>
+                  setConditions((prev) => ({ ...prev, cookingMethod: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -353,7 +429,9 @@ export default function Home() {
               <Label>食材傾向</Label>
               <Select
                 value={conditions.seasonalFocus}
-                onValueChange={(value: GenerationConditions["seasonalFocus"]) => setConditions(prev => ({ ...prev, seasonalFocus: value }))}
+                onValueChange={(value: GenerationConditions["seasonalFocus"]) =>
+                  setConditions((prev) => ({ ...prev, seasonalFocus: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -372,18 +450,15 @@ export default function Home() {
               <Textarea
                 placeholder="特別な要望や注意事項があればご記入ください（例：彩り豊かに、子供向け、辛いものは控えめに、など）"
                 value={conditions.additionalRequests}
-                onChange={(e) => setConditions(prev => ({ ...prev, additionalRequests: e.target.value }))}
+                onChange={(e) =>
+                  setConditions((prev) => ({ ...prev, additionalRequests: e.target.value }))
+                }
                 className="min-h-20"
               />
             </div>
 
             {/* 生成ボタン */}
-            <Button
-              onClick={handleGenerate}
-              disabled={isGenerating}
-              className="w-full"
-              size="lg"
-            >
+            <Button onClick={handleGenerate} disabled={isGenerating} className="w-full" size="lg">
               {isGenerating ? "生成中..." : "🤖 メニューを生成する"}
             </Button>
           </CardContent>

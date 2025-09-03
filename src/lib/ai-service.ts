@@ -1,7 +1,7 @@
+import type { BentoMenu, GenerationConditions } from "@/types/bento";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import type { BentoMenu, GenerationConditions } from "@/types/bento";
 
 const BentoMenuSchema = z.object({
   name: z.string(),
@@ -37,7 +37,7 @@ export class BentoAIService {
       const prompt = this.buildPrompt(conditions);
 
       const completion = await this.openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-5",
         messages: [
           {
             role: "system",
@@ -83,10 +83,11 @@ export class BentoAIService {
   }
 
   private buildPrompt(conditions: GenerationConditions): string {
-    const allergenText = conditions.allergens.length > 0 
-      ? `アレルギー対応: ${conditions.allergens.join("、")}を使用しない` 
-      : "アレルギー制約なし";
-    
+    const allergenText =
+      conditions.allergens.length > 0
+        ? `アレルギー対応: ${conditions.allergens.join("、")}を使用しない`
+        : "アレルギー制約なし";
+
     const currentSeason = this.getCurrentSeason();
     const regionFeatures = this.getRegionFeatures(conditions.region);
 
@@ -150,12 +151,12 @@ ${conditions.additionalRequests ? `- その他のリクエスト: ${conditions.a
   private getRegionFeatures(region: string): string {
     const features: { [key: string]: string } = {
       // 日本の特色
-      "北海道": "（海産物、じゃがいも、とうもろこしが豊富）",
-      "東京都": "（多様な食材、洗練された味付け）",
-      "大阪府": "（だしの文化、粉もの文化）",
-      "愛知県": "（味噌文化、きしめんなど）",
-      "福岡県": "（醤油ベースの味付け、明太子など）",
-      "三重県": "（伊勢うどん、海産物、松阪牛など）",
+      北海道: "（海産物、じゃがいも、とうもろこしが豊富）",
+      東京都: "（多様な食材、洗練された味付け）",
+      大阪府: "（だしの文化、粉もの文化）",
+      愛知県: "（味噌文化、きしめんなど）",
+      福岡県: "（醤油ベースの味付け、明太子など）",
+      三重県: "（伊勢うどん、海産物、松阪牛など）",
       // 海外の特色
       "🌏 韓国": "（キムチ、コチュジャン、ナムル、焼肉文化）",
       "🌏 中国": "（八角、五香粉、炒め物、点心文化）",

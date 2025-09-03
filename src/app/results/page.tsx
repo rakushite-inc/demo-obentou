@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, RotateCcw, Save, ArrowLeft } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { BentoMenu, GenerationConditions } from "@/types/bento";
 
 // デモ用のサンプルデータ
@@ -77,7 +77,6 @@ export default function ResultsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [conditions, setConditions] = useState<GenerationConditions | null>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     // sessionStorageからデータを読み込み

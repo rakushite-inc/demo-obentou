@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": ["Bash(git push:*)", "Bash(bun run lint:*)"],
+    "deny": [
+      "Bash(git config *)",
+      "Bash(brew install *)",
+      "Bash(chmod 777 *)",
+      "Bash(rm -rf /*)",
+      "Bash(gh repo delete:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "enabledMcpjsonServers": ["o3"],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/deny-check.local.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "Notification": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "afplay /System/Library/Sounds/Glass.aiff"
+        }
+      ]
+    }
+  ],
+  "enableAllProjectMcpServers": true
+}
